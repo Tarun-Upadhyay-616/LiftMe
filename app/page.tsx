@@ -1,5 +1,4 @@
 
-import { SignUp } from '@clerk/nextjs';
 
 export default function Home() {
   return (
@@ -7,7 +6,6 @@ export default function Home() {
       <h2>
         This is the End
       </h2>
-      <SignUp/>
     </div>
   );
 }
