@@ -1,14 +1,16 @@
+import Booking from "@/components/Booking/Booking";
+import Map from "@/components/Map/Map";
 
 
 export default function Home() {
   return (
     <div>
-      <div className="grid grid-cols-3">
-        <div>
-          Booking panel
+      <div className="grid grid-cols-1 md:grid-cols-3">
+        <div className="">
+          <Booking/>
         </div>
-        <div className="col-span-2">
-          Map Panel
+        <div className="col-span-2 bg-red-100">
+          <Map/>
         </div>
       </div>
     </div>
