@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono , Orbitron} from "next/font/google";
+import { Geist, Geist_Mono , Arvo} from "next/font/google";
 import { ClerkProvider } from '@clerk/nextjs'
 import "./globals.css";
 import NavBar from './../components/NavBar';
@@ -8,8 +8,8 @@ const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
-const alansans = Orbitron({
-  subsets: ["latin"],
+const alansans = Arvo({
+  weight: "400",
 });
 
 const geistMono = Geist_Mono({

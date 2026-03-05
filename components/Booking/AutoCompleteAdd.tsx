@@ -1,44 +1,97 @@
 "use client";
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react';
 
 function AutoCompleteAdd() {
-  const [query, setQuery] = useState<any>('')
-  const [addressList, setAddressList] = useState<any>([])
 
-  useEffect(()=>{
-    getAddress();
-  },[query]);
+  const [sourceQuery, setSourceQuery] = useState('');
+  const [sourceList, setSourceList] = useState<string[]>([]);
+  
+  const [destQuery, setDestQuery] = useState('');
+  const [destList, setDestList] = useState<string[]>([]);
 
-  const getAddress = async () => {
-    const response = await fetch('/api/search-address?q=' + query, {
-      headers: {
-        "Content-Type": "application/json",
-        "User-Agent": "LiftMe"
+
+  const getAddresses = useCallback(async (q: string, setList: (data: string[]) => void) => {
+    if (q.length <= 2) {
+      setList([]);
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/search-address?q=${encodeURIComponent(q)}`);
+      const result = await response.json();
+      
+      if (Array.isArray(result)) {
+        const formatted = result.map((item: any) => 
+          Object.values(item.address)
+            .filter(val => typeof val === 'string')
+            .join(', ')
+        );
+        setList(formatted);
       }
-    });
-    const result = await response.json();
-    setAddressList(result)
-  }
-  return (
-    <div className='mt-5' >
-      <div>
-        <label className="text-gray-400">Where From?</label>
-        <input type="text" className='bg-white p-1 w-full border border-gray-400 rounded-md outline-none focus:border-gray-800' value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-        {addressList?.suggestions?
-        <div>
-          {addressList?.suggestions.map((item:any,index:number)=>(
-          <h2>{item}</h2>
+    } catch (error) {
+      console.error("Error fetching addresses:", error);
+      setList([]);
+    }
+  }, []);
+
+
+  useEffect(() => {
+    const timer = setTimeout(() => getAddresses(sourceQuery, setSourceList), 300);
+    return () => clearTimeout(timer);
+  }, [sourceQuery, getAddresses]);
+
+
+  useEffect(() => {
+    const timer = setTimeout(() => getAddresses(destQuery, setDestList), 300);
+    return () => clearTimeout(timer);
+  }, [destQuery, getAddresses]);
+
+
+  const RenderList = ({ list, setter, querySetter }: any) => (
+    list.length > 0 && (
+      <div className="absolute w-full bg-white shadow-lg border rounded-md z-10 max-h-60 overflow-y-auto">
+        {list.map((item: string, index: number) => (
+          <div
+            key={index}
+            className="p-3 hover:bg-blue-50 cursor-pointer border-b last:border-none text-sm"
+            onClick={() => {
+              querySetter(item);
+              setter([]); 
+            }}
+          >
+            {item}
+          </div>
         ))}
-        </div>:null}
       </div>
-      <div className='mt-3'>
-        <label className="text-gray-400">Destination?</label>
-        <input type="text" className='bg-white p-1 w-full border border-gray-400 rounded-md outline-none focus:border-gray-800' />
+    )
+  );
+
+  return (
+    <div className='mt-5 space-y-6 max-w-md mx-auto'>
+      <div className='relative'>
+        <label className="text-sm font-medium text-gray-500">Where From?</label>
+        <input
+          type="text"
+          className='bg-white p-2 w-full border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-blue-500 mt-1'
+          value={sourceQuery}
+          onChange={(e) => setSourceQuery(e.target.value)}
+          placeholder="Search pickup..."
+        />
+        <RenderList list={sourceList} setter={setSourceList} querySetter={setSourceQuery} />
+      </div>
+      <div className='relative'>
+        <label className="text-sm font-medium text-gray-500">Where To?</label>
+        <input
+          type="text"
+          className='bg-white p-2 w-full border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-blue-500 mt-1'
+          value={destQuery}
+          onChange={(e) => setDestQuery(e.target.value)} 
+          placeholder="Search destination..."
+        />
+        <RenderList list={destList} setter={setDestList} querySetter={setDestQuery} />
       </div>
     </div>
-  )
+  );
 }
 
-export default AutoCompleteAdd
+export default AutoCompleteAdd;

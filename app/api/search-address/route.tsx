@@ -1,14 +1,22 @@
 import { NextResponse } from "next/server";
 
-export async function GET(request:any){
-    const {searchParams} = new URL(request.url);
+export async function GET(request: Request) {
+    const { searchParams } = new URL(request.url);
     const searchText = searchParams.get('q');
-    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${searchText}&format=jsonv2&limit=5`,{
-        headers:{
-            "Content-Type": "application/json",
-            "User-Agent": "LiftMe"
-        }
-    })
+
+    if (!searchText) return NextResponse.json([]);
+
+    const API_KEY = process.env.LOCATIONIQ_API_KEY; 
+
+    const res = await fetch(
+        `https://api.locationiq.com/v1/autocomplete?key=${API_KEY}&q=${searchText}&limit=3&format=json`
+    );
+
+    if (!res.ok) {
+        console.error(`LocationIQ Error: ${res.status}`);
+        return NextResponse.json({ error: "Unauthorized" }, { status: res.status });
+    }
+
     const searchResult = await res.json();
     return NextResponse.json(searchResult);
 }
